@@ -1,36 +1,48 @@
-# This is a basic workflow to help you get started with Actions
+name: Sample - approval test (dev & test)
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+permissions:
+  contents: read
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  # ---------------------------------------------------------------------------
+  # PLAN: runs freely, no approval. Just prints fake init/validate/plan output.
+  # ---------------------------------------------------------------------------
+  plan:
+    name: Plan (${{ matrix.environment }})
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, test]
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Terraform Init
+        run: echo "init for ${{ matrix.environment }}"
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Terraform Validate
+        run: echo "validate for ${{ matrix.environment }}"
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Terraform Plan
+        run: echo "plan for ${{ matrix.environment }}"
+
+  # ---------------------------------------------------------------------------
+  # APPLY: PAUSES for manual approval (protected environment <env>-apply),
+  # then just prints yes/no instead of applying anything.
+  # ---------------------------------------------------------------------------
+  apply:
+    name: Apply (${{ matrix.environment }})
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}-apply   # <-- approval gate
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, test]
+    steps:
+      - name: Terraform Apply (fake)
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "yes"
+          echo "no"
+          echo "Apply step ran for ${{ matrix.environment }} after approval"
