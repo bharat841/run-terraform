@@ -12,7 +12,7 @@ jobs:
   # ---------------------------------------------------------------------------
   plan:
     name: Plan (${{ matrix.environment }})
-    runs-on: [self-hosted, tf]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +34,7 @@ jobs:
   apply:
     name: Apply (${{ matrix.environment }})
     needs: plan
-    runs-on: [self-hosted, tf]
+    runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}-apply   # <-- approval gate
     strategy:
       fail-fast: false
